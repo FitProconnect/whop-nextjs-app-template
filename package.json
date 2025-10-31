@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "whop-proxy --command 'next dev --turbopack'",
+		"dev:direct": "next dev --turbopack",
 		"build": "next build",
 		"start": "next start",
 		"lint": "biome lint"
