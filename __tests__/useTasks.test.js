@@ -1,49 +1,56 @@
 /** @jest-environment jsdom */
 import React from 'react'
-import { renderHook, act } from '@testing-library/react'
+import { render, act, screen } from '@testing-library/react'
 import useTasks from '../hooks/useTasks'
 
-// Note: these tests rely on a jsdom environment where localStorage is available.
-describe('useTasks hook', () => {
+// Helper test component to access hook actions via a ref-like object
+function TestHarness({ bridge }) {
+  const hook = useTasks();
+  // expose to outer test
+  bridge.current = hook;
+  return null;
+}
+
+describe('useTasks hook (integration)', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  test('initializes with seeded tasks if storage empty', () => {
-    const { result } = renderHook(() => useTasks());
-    expect(result.current.tasks.length).toBeGreaterThanOrEqual(1);
-  });
-
-  test('add, update, delete, and reload', () => {
-    const { result } = renderHook(() => useTasks());
+  test('initializes and persists tasks', () => {
+    const bridge = { current: null };
+    render(<TestHarness bridge={bridge} />);
+    const hook = bridge.current;
+    expect(hook.tasks.length).toBeGreaterThanOrEqual(1);
 
     act(() => {
-      result.current.addTask({ text: 'test item' });
+      hook.addTask({ text: 'test item' });
     });
-    expect(result.current.tasks.some(t => t.text === 'test item')).toBe(true);
+    expect(hook.tasks.some(t => t.text === 'test item')).toBe(true);
 
-    const item = result.current.tasks.find(t => t.text === 'test item');
+    const item = hook.tasks.find(t => t.text === 'test item');
     expect(item).toBeDefined();
 
     act(() => {
-      result.current.updateTask(item.id, { done: true });
+      hook.updateTask(item.id, { done: true });
     });
-    const updated = result.current.tasks.find(t => t.id === item.id);
+    const updated = hook.tasks.find(t => t.id === item.id);
     expect(updated.done).toBe(true);
 
     act(() => {
-      result.current.deleteTask(item.id);
+      hook.deleteTask(item.id);
     });
-    expect(result.current.tasks.find(t => t.id === item.id)).toBeUndefined();
+    expect(hook.tasks.find(t => t.id === item.id)).toBeUndefined();
 
-    // ensure reload reads from storage
-    // First, add one and then create a fresh hook instance
+    // persist test
     act(() => {
-      result.current.addTask({ text: 'persisted' });
+      hook.addTask({ text: 'persisted' });
     });
-    const savedId = result.current.tasks.find(t => t.text === 'persisted').id;
-    // mount a new hook and check it picks up from localStorage
-    const { result: r2 } = renderHook(() => useTasks());
-    expect(r2.current.tasks.find(t => t.id === savedId)).toBeDefined();
+    const savedId = hook.tasks.find(t => t.text === 'persisted').id;
+
+    // new harness should pick up from storage
+    const bridge2 = { current: null };
+    render(<TestHarness bridge={bridge2} />);
+    const hook2 = bridge2.current;
+    expect(hook2.tasks.find(t => t.id === savedId)).toBeDefined();
   });
 });
