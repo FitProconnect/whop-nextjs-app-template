@@ -91,6 +91,17 @@ Want server-backed persistence?
 
 If you'd like todos to persist across devices or be tied to Whop users/orgs, I can add a small server API route and wire it to the Whop SDK. That requires setting the `WHOP_API_KEY` in Vercel and `.env.local` locally.
 
+Local persistence
+-----------------
+
+The todo app persists tasks locally in the browser using `localStorage`. That means:
+
+- Tasks survive page reloads and browser restarts on the same device and browser profile.
+- No user account or server-side storage is required.
+- To clear all tasks, clear site storage in your browser (Developer Tools → Application → Clear Storage) or run `localStorage.removeItem('whop:todos:v1')` in the console.
+
+If you later want cross-device sync, I can add an optional server-backed persistence layer using the Whop API or a small DB.
+
 ## Deploying
 
 1. Upload your fork / copy of this template to github.
