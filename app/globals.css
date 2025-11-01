@@ -5,8 +5,7 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@whop/react/styles.css" layer(frosted_ui);
 
-/* biome-ignore lint/suspicious/noUnknownAtRules: this rule is imported from whop */
-@config '../tailwind.config.ts';
+
 
 body {
     background: var(--background);
@@ -46,4 +45,4 @@ body {
 
 /* small utilities */
 .text-muted-foreground { color: var(--muted); }
-/* removed invalid escaped Tailwind selector to avoid CSS parse errors */
+.focus\:ring-2:focus { box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
