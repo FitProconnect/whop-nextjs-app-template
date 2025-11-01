@@ -57,6 +57,18 @@ Vercel deployment (recommended)
 	 - WHOP_WEBHOOK_SECRET
 	 - NEXT_PUBLIC_WHOP_APP_ID
 
+**Vercel: WHOP_API_KEY (server-side only)**
+
+When adding `WHOP_API_KEY` to Vercel, make sure:
+
+- You add it under Project Settings → Environment Variables (or during the import flow).
+- Name: `WHOP_API_KEY` (exactly)
+- Value: the secret API key from your Whop dashboard (do NOT share publicly).
+- Environment: choose `Preview` and `Production` as needed.
+- Mark it as a secret (Vercel hides values by default).
+
+Important: Do NOT prefix this key with `NEXT_PUBLIC_` — it must remain server-only so it is never exposed to the browser. The proxy API route at `pages/api/whop/proxy.js` uses `process.env.WHOP_API_KEY` server-side to call the Whop API safely.
+
 4. Leave the Build Command empty (Vercel will detect Next.js) or set to:
 
 	 ```bash
