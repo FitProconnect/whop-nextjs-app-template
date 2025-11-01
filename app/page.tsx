@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@whop/react/components";
+// Using native button instead of @whop/react Button to avoid peer dependency issues
 import useTasks from "../hooks/useTasks";
 import TaskSyncIndicator from "../components/TaskSyncIndicator";
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Page() {
 		const { tasks, lastSavedAt, addTask, updateTask, deleteTask } = useTasks();
@@ -42,8 +41,8 @@ export default function Page() {
 				</header>
 
 				<section className="mb-6">
-					<div className="flex gap-3">
-						<input
+								<div className="flex gap-3">
+									<input
 							aria-label="Add todo"
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
@@ -51,7 +50,12 @@ export default function Page() {
 							className="flex-1 rounded-xl px-4 py-2 shadow-sm border border-transparent focus:outline-none focus:ring-2 focus:ring-accent transition"
 							placeholder="Add a new todo..."
 						/>
-						<Button variant="classic" onClick={onAdd}>Add</Button>
+									<button
+										onClick={onAdd}
+										className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white"
+									>
+										Add
+									</button>
 					</div>
 				</section>
 
@@ -60,41 +64,35 @@ export default function Page() {
 								{tasks.length === 0 && (
 									<li className="text-center text-muted-foreground">No todos yet — add one above.</li>
 								)}
-								<AnimatePresence>
-									{(tasks as any[]).map((t: any) => (
-										<motion.li
-											key={t.id}
-											layout
-											initial={{ opacity: 0, y: -8, scale: 0.995 }}
-											animate={{ opacity: 1, y: 0, scale: 1 }}
-											exit={{ opacity: 0, y: -12, scale: 0.985, height: 0, margin: 0, padding: 0 }}
-											transition={{ duration: 0.24 }}
-											className={`todo-item flex items-center justify-between gap-4 p-3 rounded-xl shadow-sm`}
-										>
-											<label className="flex items-center gap-3">
-												<input
-													type="checkbox"
-													checked={t.done}
-													onChange={() => onToggle(t.id)}
-													className="w-5 h-5 rounded-md"
-												/>
-												<span className={`select-none ${t.done ? "line-through text-muted-foreground" : ""}`}>
-													{t.text}
-												</span>
-											</label>
-											<div className="flex items-center gap-2">
-												<motion.button
-													whileTap={{ scale: 0.95 }}
-													aria-label={`Delete ${t.text}`}
-													onClick={() => onDelete(t.id)}
-													className="text-sm text-red-500 hover:text-red-600 transition"
+											{(tasks as any[]).map((t: any) => (
+												<li
+													key={t.id}
+													className={`todo-item flex items-center justify-between gap-4 p-3 rounded-xl shadow-sm ${
+														removing[t.id] ? "removing" : ""
+													}`}
 												>
-													Delete
-												</motion.button>
-											</div>
-										</motion.li>
-									))}
-								</AnimatePresence>
+													<label className="flex items-center gap-3">
+														<input
+															type="checkbox"
+															checked={t.done}
+															onChange={() => onToggle(t.id)}
+															className="w-5 h-5 rounded-md"
+														/>
+														<span className={`select-none ${t.done ? "line-through text-muted-foreground" : ""}`}>
+															{t.text}
+														</span>
+													</label>
+													<div className="flex items-center gap-2">
+														<button
+															aria-label={`Delete ${t.text}`}
+															onClick={() => onDelete(t.id)}
+															className="text-sm text-red-500 hover:text-red-600 transition"
+														>
+															Delete
+														</button>
+													</div>
+												</li>
+											))}
 							</ul>
 						</section>
 			</div>

@@ -19,38 +19,39 @@ describe('useTasks hook (integration)', () => {
   test('initializes and persists tasks', () => {
     const bridge = { current: null };
     render(<TestHarness bridge={bridge} />);
-    const hook = bridge.current;
-    expect(hook.tasks.length).toBeGreaterThanOrEqual(1);
+    // use a getter so we always read the latest hook object after re-renders
+    const hook = () => bridge.current;
+    expect(hook().tasks.length).toBeGreaterThanOrEqual(1);
 
     act(() => {
-      hook.addTask({ text: 'test item' });
+      hook().addTask({ text: 'test item' });
     });
-    expect(hook.tasks.some(t => t.text === 'test item')).toBe(true);
+    expect(hook().tasks.some(t => t.text === 'test item')).toBe(true);
 
-    const item = hook.tasks.find(t => t.text === 'test item');
+    const item = hook().tasks.find(t => t.text === 'test item');
     expect(item).toBeDefined();
 
     act(() => {
-      hook.updateTask(item.id, { done: true });
+      hook().updateTask(item.id, { done: true });
     });
-    const updated = hook.tasks.find(t => t.id === item.id);
+    const updated = hook().tasks.find(t => t.id === item.id);
     expect(updated.done).toBe(true);
 
     act(() => {
-      hook.deleteTask(item.id);
+      hook().deleteTask(item.id);
     });
-    expect(hook.tasks.find(t => t.id === item.id)).toBeUndefined();
+    expect(hook().tasks.find(t => t.id === item.id)).toBeUndefined();
 
     // persist test
     act(() => {
-      hook.addTask({ text: 'persisted' });
+      hook().addTask({ text: 'persisted' });
     });
-    const savedId = hook.tasks.find(t => t.text === 'persisted').id;
+    const savedId = hook().tasks.find(t => t.text === 'persisted').id;
 
     // new harness should pick up from storage
     const bridge2 = { current: null };
     render(<TestHarness bridge={bridge2} />);
-    const hook2 = bridge2.current;
-    expect(hook2.tasks.find(t => t.id === savedId)).toBeDefined();
+    const hook2 = () => bridge2.current;
+    expect(hook2().tasks.find(t => t.id === savedId)).toBeDefined();
   });
 });
