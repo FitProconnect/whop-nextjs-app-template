@@ -41,7 +41,7 @@ export default function Page() {
 		<main className="min-h-screen flex items-center justify-center p-6">
 			<div className="w-full max-w-2xl glass-card backdrop-blur-lg rounded-3xl p-6 shadow-xl">
 				<header className="mb-6 text-center">
-					<h1 className="text-4xl font-extrabold tracking-tight mb-2">Whop Todos</h1>
+					<h1 className="text-4xl font-extrabold tracking-tight mb-2">Your Todos</h1>
 					<p className="text-sm text-muted-foreground">Simple, fast, and delightful.</p>
 					<div className="mt-2">
 						<TaskSyncIndicator lastSavedAt={lastSavedAt} />
