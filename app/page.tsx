@@ -4,9 +4,11 @@ import { useState } from "react";
 // Using native button instead of @whop/react Button to avoid peer dependency issues
 import useTasks from "../hooks/useTasks";
 import TaskSyncIndicator from "../components/TaskSyncIndicator";
+import StreakBadge from "../components/StreakBadge";
+import StreakHeader from "../components/StreakHeader";
 
 export default function Page() {
-		const { tasks, lastSavedAt, addTask, updateTask, deleteTask } = useTasks();
+		const { tasks, lastSavedAt, addTask, updateTask, deleteTask, markComplete, markIncomplete } = useTasks();
 	const [input, setInput] = useState("");
 	const [removing, setRemoving] = useState<Record<string, boolean>>({});
 
@@ -21,7 +23,13 @@ export default function Page() {
 		function onToggle(id: string) {
 			const t = (tasks as any[]).find((x: any) => x.id === id) as any;
 			if (!t) return;
-			updateTask(id, { done: !t.done });
+			if (!t.done) {
+				// mark complete -> update streaks
+				markComplete(id);
+			} else {
+				// undo today's completion if applicable
+				markIncomplete(id);
+			}
 		}
 
 	function onDelete(id: string) {
@@ -41,6 +49,7 @@ export default function Page() {
 				</header>
 
 				<section className="mb-6">
+					<StreakHeader tasks={tasks} goal={7} />
 								<div className="flex gap-3">
 									<input
 							aria-label="Add todo"
@@ -78,11 +87,12 @@ export default function Page() {
 															onChange={() => onToggle(t.id)}
 															className="w-5 h-5 rounded-md"
 														/>
-														<span className={`select-none ${t.done ? "line-through text-muted-foreground" : ""}`}>
-															{t.text}
-														</span>
+																<span className={`select-none ${t.done ? "line-through text-muted-foreground" : ""}`}>
+																	{t.text}
+																</span>
 													</label>
-													<div className="flex items-center gap-2">
+													<div className="flex items-center gap-3">
+														<StreakBadge task={t} />
 														<button
 															aria-label={`Delete ${t.text}`}
 															onClick={() => onDelete(t.id)}

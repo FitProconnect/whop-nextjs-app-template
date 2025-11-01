@@ -39,10 +39,24 @@ export default function useTasks() {
         // fallthrough to seed
       }
     }
-    const seeded = seedDemo();
-    setTasks(seeded);
+    const seeded = seedDemo().map((t) => ({
+      // ensure streak fields exist on seeded tasks
+      ...t,
+      lastCompletedAt: t.lastCompletedAt ?? null,
+      currentStreak: typeof t.currentStreak === "number" ? t.currentStreak : 0,
+      bestStreak: typeof t.bestStreak === "number" ? t.bestStreak : 0,
+    }));
+    // On load, ensure stale streaks are reset (older than yesterday)
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const normalized = seeded.map((s) => {
+      if (!s.lastCompletedAt) return { ...s, currentStreak: 0 };
+      if (s.lastCompletedAt === today || s.lastCompletedAt === yesterday) return s;
+      return { ...s, currentStreak: 0 };
+    });
+    setTasks(normalized);
     try {
-      if (storageAvailable.current) localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+      if (storageAvailable.current) localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
       setLastSavedAt(Date.now());
     } catch (e) {
       // ignore
@@ -68,6 +82,10 @@ export default function useTasks() {
       id: task.id || (crypto?.randomUUID?.() || Math.random().toString(36).slice(2, 9)),
       text: task.text || "",
       done: !!task.done,
+      // streak fields
+      lastCompletedAt: null,
+      currentStreak: 0,
+      bestStreak: 0,
     };
     setTasks((s) => {
       const next = [t, ...s];
@@ -75,6 +93,55 @@ export default function useTasks() {
       return next;
     });
     return t;
+  }, [persist]);
+
+  // mark a task as completed today and update streaks
+  const markComplete = useCallback((id) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    setTasks((s) => {
+      const next = s.map((t) => {
+        if (t.id !== id) return t;
+        const last = t.lastCompletedAt || null;
+        let current = typeof t.currentStreak === "number" ? t.currentStreak : 0;
+        let best = typeof t.bestStreak === "number" ? t.bestStreak : 0;
+        if (last === today) {
+          // already completed today, no-op
+          return { ...t, done: true };
+        }
+        if (last === yesterday) {
+          current = current + 1;
+        } else {
+          current = 1;
+        }
+        if (current > best) best = current;
+        return { ...t, done: true, lastCompletedAt: today, currentStreak: current, bestStreak: best };
+      });
+      persist(next);
+      return next;
+    });
+  }, [persist]);
+
+  // undo today's completion safely
+  const markIncomplete = useCallback((id) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setTasks((s) => {
+      const next = s.map((t) => {
+        if (t.id !== id) return t;
+        const last = t.lastCompletedAt || null;
+        let current = typeof t.currentStreak === "number" ? t.currentStreak : 0;
+        // Only undo if the completion was today; otherwise treat as a simple un-complete
+        if (last === today) {
+          current = Math.max(0, current - 1);
+          // We cannot reliably restore previous lastCompletedAt without history.
+          // Clear today's completion; keep bestStreak as-is.
+          return { ...t, done: false, lastCompletedAt: null, currentStreak: current };
+        }
+        return { ...t, done: false };
+      });
+      persist(next);
+      return next;
+    });
   }, [persist]);
 
   const updateTask = useCallback((id, patch) => {
@@ -111,6 +178,8 @@ export default function useTasks() {
     addTask,
     updateTask,
     deleteTask,
+    markComplete,
+    markIncomplete,
     reload,
   };
 }
