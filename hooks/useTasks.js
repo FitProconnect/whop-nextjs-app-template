@@ -24,6 +24,7 @@ export default function useTasks() {
   const [tasks, setTasks] = useState([]);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const storageAvailable = useRef(supportsLocalStorage());
+  const transientTimers = useRef({});
 
   // initialize
   useEffect(() => {
@@ -66,7 +67,13 @@ export default function useTasks() {
   const persist = useCallback((next) => {
     try {
       if (storageAvailable.current) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        // strip transient fields (like _justGotBest) before persisting
+        const sanitized = next.map((t) => {
+          const copy = { ...t };
+          if (copy._justGotBest) delete copy._justGotBest;
+          return copy;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
       }
       setLastSavedAt(Date.now());
     } catch (e) {
@@ -104,7 +111,8 @@ export default function useTasks() {
         if (t.id !== id) return t;
         const last = t.lastCompletedAt || null;
         let current = typeof t.currentStreak === "number" ? t.currentStreak : 0;
-        let best = typeof t.bestStreak === "number" ? t.bestStreak : 0;
+        const prevBest = typeof t.bestStreak === "number" ? t.bestStreak : 0;
+        let best = prevBest;
         if (last === today) {
           // already completed today, no-op
           return { ...t, done: true };
@@ -115,7 +123,36 @@ export default function useTasks() {
           current = 1;
         }
         if (current > best) best = current;
-        return { ...t, done: true, lastCompletedAt: today, currentStreak: current, bestStreak: best };
+        const updated = { ...t, done: true, lastCompletedAt: today, currentStreak: current, bestStreak: best };
+        // transient flag to trigger pulse animation when a new best is reached
+        if (best > prevBest) {
+          updated._justGotBest = true;
+          // clear existing timer for this id
+          if (transientTimers.current[id]) clearTimeout(transientTimers.current[id]);
+          transientTimers.current[id] = setTimeout(() => {
+            // clear the transient flag
+            setTasks((cur) => {
+              const cleared = cur.map((tt) => (tt.id === id ? { ...tt, _justGotBest: false } : tt));
+              // persist sanitized
+              try {
+                if (storageAvailable.current) {
+                  const sanitized = cleared.map((x) => {
+                    const copy = { ...x };
+                    if (copy._justGotBest) delete copy._justGotBest;
+                    return copy;
+                  });
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+                }
+                setLastSavedAt(Date.now());
+              } catch (e) {
+                /* ignore */
+              }
+              return cleared;
+            });
+            delete transientTimers.current[id];
+          }, 900);
+        }
+        return updated;
       });
       persist(next);
       return next;
@@ -135,7 +172,9 @@ export default function useTasks() {
           current = Math.max(0, current - 1);
           // We cannot reliably restore previous lastCompletedAt without history.
           // Clear today's completion; keep bestStreak as-is.
-          return { ...t, done: false, lastCompletedAt: null, currentStreak: current };
+          const updated = { ...t, done: false, lastCompletedAt: null, currentStreak: current };
+          if (updated._justGotBest) delete updated._justGotBest;
+          return updated;
         }
         return { ...t, done: false };
       });
