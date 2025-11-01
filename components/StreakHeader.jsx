@@ -33,8 +33,8 @@ export default function StreakHeader({ tasks = [], goal = 7 }) {
         <div className="text-sm text-muted-foreground">Global streak progress</div>
         <div className="text-sm">{Math.round(avg)} / {goal}</div>
       </div>
-      <div className="w-full bg-white/6 rounded-full h-3 overflow-hidden">
-        <div className="h-3 bg-gradient-to-r from-accent to-pink-500" style={{ width: `${pct}%` }} />
+      <div className="w-full progress-track rounded-full h-3 overflow-hidden">
+        <div className="progress-fill bg-gradient-to-r from-accent to-pink-500" style={{ width: `${pct}%` }} />
       </div>
       {toast && (
         <div role="status" aria-live="polite" className="mt-3 text-sm text-green-300">
