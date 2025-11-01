@@ -7,25 +7,30 @@
 
 
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	font-family: Arial, Helvetica, sans-serif;
 }
 
 /* App gradient background + glass card */
 :root {
-	--background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 50%, #ec4899 100%);
-	--foreground: rgba(255,255,255,0.95);
-	--card-bg: rgba(255,255,255,0.06);
-	--muted: rgba(255,255,255,0.7);
+	/* Whop-inspired black & orange theme */
+	--bg: #0a0a0a; /* page background */
+	--dark: #121212;
+	--text: #ffffff;
+	--primary: #ff7a00; /* main orange */
+	--accent: #ff9b3d; /* light orange */
+	--card-bg: rgba(255,255,255,0.03);
+	--muted: rgba(255,255,255,0.65);
+	--danger: #ff5a5a;
 }
 
 .glass-card { background: var(--card-bg); }
 
 /* subtle card border + shadow */
-.glass-card { border: 1px solid rgba(255,255,255,0.06); }
+.glass-card { border: 1px solid rgba(255,255,255,0.04); }
 .glass-card { transition: transform 160ms ease, box-shadow 160ms ease; }
-.glass-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+.glass-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
 
 /* todo item animations */
 .todo-item {
@@ -54,7 +59,18 @@ body {
 
 /* small utilities */
 .text-muted-foreground { color: var(--muted); }
-.focus\:ring-2:focus { box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
+.focus\:ring-2:focus { box-shadow: 0 0 0 6px rgba(255,122,0,0.12); }
+
+/* Buttons */
+.btn-primary { background: var(--primary); color: var(--text); border: none; padding: 0.5rem 0.9rem; border-radius: 8px; }
+.btn-primary:hover { background: color-mix(in srgb, var(--primary) 85%, black 15%); filter: brightness(1.05); }
+.btn-ghost { background: transparent; color: var(--primary); border: 1px solid rgba(255,122,0,0.12); padding: 0.4rem 0.8rem; border-radius: 8px; }
+
+/* Streak visuals updated to orange theme */
+.streak-current { background: linear-gradient(90deg, var(--primary), var(--accent)); box-shadow: 0 2px 10px rgba(255,122,0,0.12); }
+.streak-best { background: linear-gradient(90deg, #ffd86b, #ffcf6b); box-shadow: 0 2px 8px rgba(255,200,100,0.08); }
+.streak-badge { transition: transform 180ms ease, box-shadow 180ms ease; }
+.streak-badge.new-best { animation: pulseBest 900ms ease; }
 
 /* Streak visuals */
 .streak-current { background: linear-gradient(90deg, #ffb86b, #ff6b6b); box-shadow: 0 2px 8px rgba(255,107,107,0.12); }
@@ -69,5 +85,5 @@ body {
 }
 
 /* Progress bar subtle styling */
-.progress-track { background: rgba(255,255,255,0.06); border-radius: 999px; }
-.progress-fill { transition: width 600ms cubic-bezier(.2,.9,.25,1); height:100%; border-radius: 999px; }
+.progress-track { background: rgba(255,255,255,0.03); border-radius: 999px; }
+.progress-fill { transition: width 600ms cubic-bezier(.2,.9,.25,1); height:100%; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--accent)); }

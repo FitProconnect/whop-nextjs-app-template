@@ -50,7 +50,7 @@ export default function Page() {
 
 				<section className="mb-6">
 					<StreakHeader tasks={tasks} goal={7} />
-								<div className="flex gap-3">
+					<div className="flex gap-3">
 									<input
 							aria-label="Add todo"
 							value={input}
@@ -61,7 +61,7 @@ export default function Page() {
 						/>
 									<button
 										onClick={onAdd}
-										className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white"
+										className="btn-primary"
 									>
 										Add
 									</button>
@@ -96,7 +96,7 @@ export default function Page() {
 														<button
 															aria-label={`Delete ${t.text}`}
 															onClick={() => onDelete(t.id)}
-															className="text-sm text-red-500 hover:text-red-600 transition"
+															className="text-sm text-orange-300 hover:text-orange-100 transition"
 														>
 															Delete
 														</button>
